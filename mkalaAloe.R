@@ -1,5 +1,5 @@
 setwd("D:/current/wc5")
-
+library(spThin)
 library(sdm)
 library(dismo)
 library(dplyr)
@@ -12,14 +12,66 @@ library(tidyverse)
 library(sp)
 library(ggplot2)
 
-spt3 <- gbif("Aloe","ballyi",download = T,geo = T,sp=F)
+spt3 <- gbif("Uvaria","kirkii",download = T,geo = T,sp=F)
 spt3
 write.csv(spt3, file = "spt3.csv")
 
-sp <- read.csv("D:/current/wc5/combined_species.csv")
+##################################
+#Species thinning to a distance of preference
+
+
+getwd()
+
+
+
+#Packages
+library(raster)
+library(spThin)
+library(dplyr)
+
+#Read file
+sp <- read.csv("D:/current/wc5/multispecies_ocurrence_table.csv")
+
+#Check table structure
+head(sp)
+
+#The spThin applied below can also thin multiple species at same time
+e <- split(sp, sp$species)
+names <- names(e)
+
+lapply(seq_along(e),
+       function(x){
+         thin(
+           e[[x]],
+           lat.col = "lat",
+           long.col = "lon",
+           spec.col = "species",
+           thin.par= 10,
+           reps=10,
+           locs.thinned.list.return = FALSE,
+           write.files = TRUE,
+           max.files = 5,
+           out.dir="D:/current/wc5",
+           out.base = x,
+           write.log.file = TRUE,
+           log.file = "spatial_thin_log.txt",
+           verbose = TRUE)
+       })
+
+filenames <- list.files(pattern="*thin1.csv")
+H_thin <- do.call("rbind",lapply(filenames,FUN=function(files){ read.csv(files)}))
+write.csv(H_thin, file= "Her_th.csv",row.names = F)
+###############################################################################################
+sp <- read.csv("D:/current/wc5/multispecies_ocurrence_table.csv")
 
 coordinates(sp) <- ~lon+lat
 
+####################################
+#The steps below are followed when you obtain the data online and direct to R
+#Bioclim data
+bio <- raster::getData("worldclim", var = "bio", res = 10)
+bio
+################################################
 Biom <-list.files("C:/Users/Hp/Documents/ArcGIS/submission/XG/2asc", pattern = ".asc",full.names = TRUE)
 
 Biom
@@ -46,7 +98,7 @@ biom <- exclude(current,v1)
 
 #####################################################################################################
 #######Step for identifying min and max points for the species to help id developing specific area of extent#
-min_max <- read.csv("D:/current/wc5/combined_species.csv")
+min_max <- read.csv("D:/current/wc5/multispecies_ocurrence_table.csv")
 table(min_max$species)
 min(min_max$lat)
 min(min_max$lon)
@@ -54,7 +106,7 @@ max(min_max$lat)
 max(min_max$lon)
 
 #######this step is for croping your desired species to the exact point of area studY#####
-biom_crop <- crop(biom[[13]], c(34, 40, -5, 0))
+biom_crop <- crop(biom[[13]], c(30, 45, -20, 0))
 plot(biom_crop)
 
 plot(sp[sp$species == 'Aloe ballyi', ], col = 'blue', pch = 8, add = TRUE)

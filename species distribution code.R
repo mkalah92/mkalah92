@@ -1,5 +1,5 @@
 ### Spthin procedure used
-setwd("C:/Users/Hp/Documents/sp/africana")
+setwd("D:/ArcGIS/submission/sdmJ/milie")
 library(sdm)
 library(dismo)
 library(dplyr)
@@ -7,7 +7,7 @@ library(tidyr)
 library(mapview)
 library(raster)
 library(jsonlite)
-sp <- gbif("Acacia","karroo",download = T,geo = T,sp=F)
+sp <- gbif("Trichoneura","eleusinoides",download = T,geo = T,sp=F)
 sp
 write.csv(sp, file = "sp.csv")
 
